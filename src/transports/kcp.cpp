@@ -245,13 +245,11 @@ void KcpTransport::_newConnection(event_ptr& ev){
     //item.info["ip"] = item.ip ;                
     //item.info["port"] =item.port;
     item.lastActivity = getCurrentMs();   
-    item.socket = ev->transport();    
-    std::cerr << "KCP: new conn 2" << std::endl;                 
+    item.socket = ev->transport();                  
     //insert itens
     _control.lock();
         connections->insert(make_pair(id, std::move(item)));
-    _control.unlock();  
-    std::cerr << "KCP: new conn 3" << std::endl;                 
+    _control.unlock();      
 }
 
 
