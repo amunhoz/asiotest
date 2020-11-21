@@ -51,8 +51,8 @@ class KcpTransport : public acroTransport
         //client vars
         json infoConn;
         int lastActivity=0;
-        int _serverType = YCK_TCP_SERVER;
-        int _clientType = YCK_TCP_CLIENT;
+        int _serverType = YCK_KCP_SERVER;
+        int _clientType = YCK_KCP_CLIENT;
                        
     private: 
         
