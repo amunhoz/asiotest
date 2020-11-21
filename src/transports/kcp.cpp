@@ -1,9 +1,9 @@
 
+#define YASIO_HAVE_KCP
 #include <transports/kcp.h>
 #include <utils/random.h>
 #include <utils/time.h>
 #include <utils/easybuffer.h>
-
 #include "kcp/ikcp.h"
 
 using namespace std;
@@ -45,11 +45,12 @@ bool KcpTransport::listen(std::string URL)
     
     try {	                          
         io_hostent endpoints[] = {{host.c_str(), porti}};        
-        _service=  new io_service(endpoints, 1);        
-        _service->set_option(YOPT_S_DEFERRED_EVENT, 0); 
+        _service=  new io_service(endpoints, 1);                
         _service->set_option(YOPT_C_MOD_FLAGS, 0, YCF_REUSEADDR, 0);
-        //_service->set_option(YOPT_C_LFBFD_PARAMS, 0, 65535, 3, 4, 7);
-        //_service->set_option(YOPT_C_LFBFD_IBTS, 1, 4); // Sets initial bytes to strip
+        _service->set_option(YOPT_C_LFBFD_PARAMS, 1, 65535, 0, 4, 0);
+        _service->set_option(YOPT_S_DEFERRED_EVENT, 0); // disable event queue             
+
+        
         
         _service->start([&, this](event_ptr ev) {
             switch (ev->kind())
@@ -67,7 +68,7 @@ bool KcpTransport::listen(std::string URL)
                 _newConnection(ev);                
                 //break;
             case YEK_CONNECTION_LOST:
-                //new connection
+                //losted connection
                 printf("[%lld] A client OUT, status=%d\n", ev->timestamp(), ev->status());
                 _dropConnection(_getId(ev));                
                 break;
@@ -101,9 +102,12 @@ bool KcpTransport::connect(std::string URL)
     Idn = gen_random_number(); 
     try {
         io_hostent endpoints[] = {{host.c_str(), porti}};
-          _service =  new io_service(endpoints, 1);
-        _service->set_option(YOPT_S_DEFERRED_EVENT, 0); // dispatch network event without queue   
-        _service->set_option(YOPT_C_MOD_FLAGS, 0, YCF_REUSEADDR, 0);                
+          _service =  new io_service(endpoints, 1);        
+        _service->set_option(YOPT_S_CONNECT_TIMEOUT, 5);
+        _service->set_option(YOPT_C_MOD_FLAGS, 0, YCF_REUSEADDR, 0);
+        _service->set_option(YOPT_C_LFBFD_PARAMS, 1, 65535, 0, 4, 0);
+        _service->set_option(YOPT_S_DEFERRED_EVENT, 0); // disable event queue             
+
         _service->start([&, this](event_ptr ev) {
             switch (ev->kind())
             {            
@@ -122,19 +126,15 @@ bool KcpTransport::connect(std::string URL)
                 printf("[%lld] A client CONNECTED, status=%d\n", ev->timestamp(), ev->status());
                 //break;
             case YEK_CONNECTION_LOST:
-                //new connection
+                //losted connection
                 status.exchange(2);          
                 Status(ConnectionStatus::OFFLINE);    
                 printf("[%lld] A client LOST, status=%d\n", ev->timestamp(), ev->status());
                 break;
             }            
         });
-        
-        _service->set_option(YOPT_S_TCP_KEEPALIVE, 5, 10, 2);        
-        //_service->set_option(YOPT_C_LFBFD_PARAMS, 0, 65535, 3, 4, 7);
-        //_service->set_option(YOPT_C_LFBFD_IBTS, 1, 4);  // Sets initial bytes to strip
-        _service->set_option(YOPT_C_MOD_FLAGS, 0, YCF_REUSEADDR, 0);
-        _service->set_option(YOPT_S_DEFERRED_EVENT, 0); // disable event queue
+                
+
         _service->open(0, _clientType);            
 
         return true;
@@ -148,10 +148,9 @@ bool KcpTransport::connect(std::string URL)
 
 void KcpTransport::setup_kcp_transfer(transport_handle_t handle)
 {
-  //STATIC CAST NOT WORKING !!!
-  //auto kcp_handle = static_cast<io_transport_kcp*>(handle)->internal_object();
-  //::ikcp_setmtu(kcp_handle, YASIO_SZ(63, k));
-  //::ikcp_wndsize(kcp_handle, 4096, 8192);
+  auto kcp_handle = static_cast<io_transport_kcp*>(handle)->internal_object();
+  ::ikcp_setmtu(kcp_handle, YASIO_SZ(63, k));
+  ::ikcp_wndsize(kcp_handle, 4096, 8192);
   
 }
 
