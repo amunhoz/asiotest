@@ -25,8 +25,10 @@ int main()
     });  
     server.onData(receiveMsgServer);
 
-    std::function<void(std::string, char *, int)> receiveMsgCli([&](std::string socket, char * buff, int size){        
-          std::cout << "client received: " << buff << std::endl;               
+    std::function<void(std::string, char *, int)> receiveMsgCli([&](std::string socket, char * buff, int size){
+        fwrite(buff, size, 1, stdout);
+        fflush(stdout);
+          //std::cout << "client received: " << buff << std::endl;               
     });  
     std::this_thread::sleep_for(std::chrono::milliseconds(5000)); //delay  a little
     KcpTransport client;     

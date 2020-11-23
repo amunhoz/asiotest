@@ -6,6 +6,7 @@
 #include <vector>
 #include <stdint.h>
 #include <limits.h>
+#include "yasio/detail/endian_portable.hpp"
 
     // TODO XXX Little-Endian/Big-Endian problem.
 #define evppbswap_64(x)                          \
@@ -18,28 +19,28 @@
      | (((x) & 0x000000000000ff00ull) << 40)     \
      | (((x) & 0x00000000000000ffull) << 56))
 
-namespace nh {
-
-	auto htons = [](unsigned short h)
-	{
-		return (unsigned short)
-			   ( h << 8 & 0xFF00U |
-			     h >> 8 & 0x00FFU );
-	};
-
-	auto htonl = [](unsigned int h)
-	{
-		return (unsigned int)
-			   ( h << 24 & 0xFF000000U |
-			     h << 8  & 0x00FF0000U |
-			     h >> 8  & 0x0000FF00U |
-			     h >> 24 & 0x000000FFU );
-	};
-
-	auto ntohs = htons;
-	auto ntohl = htonl;
-
-}
+//namespace nh {
+//
+//	auto htons = [](unsigned short h)
+//	{
+//		return (unsigned short)
+//			   ( h << 8 & 0xFF00U |
+//			     h >> 8 & 0x00FFU );
+//	};
+//
+//	auto htonl = [](unsigned int h)
+//	{
+//		return (unsigned int)
+//			   ( h << 24 & 0xFF000000U |
+//			     h << 8  & 0x00FF0000U |
+//			     h >> 8  & 0x0000FF00U |
+//			     h >> 24 & 0x000000FFU );
+//	};
+//
+//	auto ntohs = htons;
+//	auto ntohl = htonl;
+//
+//}
 
 
 class BufferEasy {
@@ -88,7 +89,7 @@ class BufferEasy {
              int bsize = sizeof be16;
              ::memcpy(&be16, data(), bsize);
              readPointer += bsize;
-             return nh::ntohs(be16);
+             return yasio::endian::ntohv(be16);
         }
 
         uint16_t readUint16() {
@@ -104,7 +105,7 @@ class BufferEasy {
             int bsize = sizeof be32;
             ::memcpy(&be32, data(), bsize);
             readPointer += bsize;
-            return nh::ntohl(be32);            
+            return yasio::endian::ntohv(be32);
         }
         
         uint32_t readUint32() {
@@ -126,7 +127,7 @@ class BufferEasy {
             int bsize = sizeof be64;
             ::memcpy(&be64, data(), bsize);
             readPointer += bsize;
-            return evppbswap_64(be64);            
+            return yasio::endian::ntohv(be64);
         }
 
         int size() {
