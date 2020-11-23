@@ -61,12 +61,12 @@ bool KcpTransport::listen(std::string URL)
                 if (!ev->packet().empty()){
                     _onData(std::move(ev->packet()), _getId(ev));
                 }                
-                //break;
+                break;
             case YEK_CONNECT_RESPONSE:
                 //new connection
                 printf("[%lld] A client IN, status=%d\n", ev->timestamp(), ev->status());
                 _newConnection(ev);                
-                //break;
+                break;
             case YEK_CONNECTION_LOST:
                 //losted connection
                 printf("[%lld] A client OUT, status=%d\n", ev->timestamp(), ev->status());
@@ -117,14 +117,14 @@ bool KcpTransport::connect(std::string URL)
                     printf("[%lld] PACKET RECEIVED, status=%d\n", ev->timestamp(), ev->status());
                     _onData(std::move(ev->packet()), "");
                 }                
-                //break;
+                break;
             case YEK_CONNECT_RESPONSE:           
                 //new connection                
                 _client = ev->transport();                                
                 status.exchange(0);          
                 Status(ConnectionStatus::ONLINE);     
                 printf("[%lld] A client CONNECTED, status=%d\n", ev->timestamp(), ev->status());
-                //break;
+                break;
             case YEK_CONNECTION_LOST:
                 //losted connection
                 status.exchange(2);          
