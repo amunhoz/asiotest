@@ -6,6 +6,8 @@ FILE(GLOB TEST_SRC  packages/kcp/*.c;packages/yasio/yasio/*.cpp;src/transports/*
 
 add_executable(asiotest ${TEST_SRC})
 
+target_compile_definitions(asiotest PUBLIC YASIO_HAVE_KCP=1)
+
 target_include_directories(asiotest 
     PUBLIC "packages/yasio"
     PUBLIC "packages/kcp"
