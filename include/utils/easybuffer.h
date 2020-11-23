@@ -67,7 +67,7 @@ class BufferEasy {
 
         void appendUint16(uint16_t num, Position pos=Position::END) {
             int pointer = 0;    
-            int bsize = sizeof(uint16_t);
+            static const int bsize = sizeof(uint16_t);
             char sizebuff[bsize];    
             memcpy(sizebuff, &num, bsize);        
             if (pos==Position::END) buff->insert(buff->end(), sizebuff, sizebuff+bsize);
@@ -76,7 +76,7 @@ class BufferEasy {
 
         void appendUint32(uint32_t num, Position pos=Position::END) {
             int pointer = 0;    
-            int bsize = sizeof(uint32_t);
+            static const int bsize = sizeof(uint32_t);
             char sizebuff[bsize];    
             memcpy(sizebuff, &num, bsize);                                    
             if (pos==Position::END) buff->insert(buff->end(), sizebuff, sizebuff+bsize);

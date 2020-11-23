@@ -30,12 +30,12 @@ void acroTransport::_init(json Options) {
 
 bool acroTransport::listen(string URL)
 {
-    
+    return false;
 }
 
 bool acroTransport::connect(string URL)
 {            
-    
+    return false;
 }
 
 void acroTransport::_checkOptions() 
@@ -45,27 +45,27 @@ void acroTransport::_checkOptions()
 
 ConnectionStatus acroTransport::Status() 
 {    
-    std::unique_lock lktmp(_control);  //lktmp.unlock();    
+    std::unique_lock<std::mutex> lktmp(_control);  //lktmp.unlock();    
     ConnectionStatus state = *_State;
     lktmp.unlock();    
     return state;
 }
 void acroTransport::Status(ConnectionStatus newState){
-    std::unique_lock lktmp(_control);  //lktmp.unlock();    
+    std::unique_lock<std::mutex> lktmp(_control);  //lktmp.unlock();    
     *_State= newState;
     lktmp.unlock();    
 }
 
 InstanceType acroTransport::Type() 
 {    
-    std::unique_lock lktmp(_control);  //lktmp.unlock();    
+    std::unique_lock<std::mutex> lktmp(_control);  //lktmp.unlock();    
     InstanceType state = *_Type;
     lktmp.unlock();    
     return state;
 }
 
 void acroTransport::Type(InstanceType newState){
-    std::unique_lock lktmp(_control);  //lktmp.unlock();    
+    std::unique_lock<std::mutex> lktmp(_control);  //lktmp.unlock();    
     *_Type = newState;
     lktmp.unlock();    
 }
@@ -91,11 +91,12 @@ void acroTransport::onError(std::function<void(string)> callback)
 
 bool acroTransport::send(char * buff, int size, msgHeader * header)
 {    
-    send(buff, size, "");
+    return send(buff, size, "");
 }
 bool acroTransport::send(char * buff, int size, string socket_id, msgHeader * header)
 {    
     std::cout << "wrong way" << std::endl;   
+    return false;
 }
 
 void acroTransport::close()

@@ -9,7 +9,7 @@ void functest(std::string Error, char * buff, int size){
 }
 int main()
 {           
-    KcpTransport server = KcpTransport();         
+    KcpTransport server;         
     server.listen("0.0.0.0:5315");
     int received =0;    
     string resp = "respo" + to_string(received);
@@ -29,7 +29,7 @@ int main()
           std::cout << "client received: " << buff << std::endl;               
     });  
     std::this_thread::sleep_for(std::chrono::milliseconds(5000)); //delay  a little
-    KcpTransport client = KcpTransport();     
+    KcpTransport client;     
     client.connect("127.0.0.1:5315");
     client.onData(receiveMsgCli);    
   
