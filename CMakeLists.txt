@@ -27,6 +27,10 @@ add_executable(asiotest ${TEST_SRC})
 
 target_compile_definitions(asiotest PUBLIC YASIO_HAVE_KCP=1)
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+target_link_libraries(asiotest PRIVATE Threads::Threads)
+
 target_include_directories(asiotest 
     PUBLIC "packages/yasio"
     PUBLIC "packages/kcp"
