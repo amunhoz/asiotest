@@ -8,7 +8,6 @@
 //local
 #include <transports/base.h>
 
-
 #include "yasio/yasio.hpp"
 #include "yasio/ibstream.hpp"
 #include "yasio/obstream.hpp"
@@ -35,8 +34,7 @@ class KcpTransport : public acroTransport
                
         uint32_t  Idn;
         void _onData(std::vector<char> msg, std::string sid);    
-        void _onEvent(event_ptr ev);          
-        void _reviewMessage(string id, char* data, int size);
+        void _onEvent(event_ptr ev);                  
         
         void _newConnection(event_ptr& ev);          
         void _dropConnection(std::string sid);
@@ -51,8 +49,14 @@ class KcpTransport : public acroTransport
         //client vars
         json infoConn;
         int lastActivity=0;
+        //int _serverType = YCK_TCP_SERVER;
+        //int _clientType = YCK_TCP_CLIENT;
+
         int _serverType = YCK_KCP_SERVER;
         int _clientType = YCK_KCP_CLIENT;
+        
+                       
+        std::mutex _controlMsgs; 
                        
     private: 
         

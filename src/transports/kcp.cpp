@@ -49,27 +49,23 @@ bool KcpTransport::listen(std::string URL)
         _service->set_option(YOPT_C_MOD_FLAGS, 0, YCF_REUSEADDR, 0);
         _service->set_option(YOPT_C_LFBFD_PARAMS, 1, 65535, 0, 4, 0);
         _service->set_option(YOPT_S_DEFERRED_EVENT, 0); // disable event queue             
-
-        
-        
+          
         _service->start([&, this](event_ptr ev) {
             switch (ev->kind())
             {            
             case YEK_PACKET:
-                //data                             
-                printf("[%lld] PACKET RECEIVED, status=%d\n", ev->timestamp(), ev->status());
+                //data                                
                 if (!ev->packet().empty()){
                     _onData(std::move(ev->packet()), _getId(ev));
                 }                
                 break;
             case YEK_CONNECT_RESPONSE:
-                //new connection
-                printf("[%lld] A client IN, status=%d\n", ev->timestamp(), ev->status());
+                //new connection                
+                //setup_kcp_transfer(ev->transport());
                 _newConnection(ev);                
                 break;
             case YEK_CONNECTION_LOST:
-                //losted connection
-                printf("[%lld] A client OUT, status=%d\n", ev->timestamp(), ev->status());
+                //losted connection                
                 _dropConnection(_getId(ev));                
                 break;
             }            
@@ -106,30 +102,28 @@ bool KcpTransport::connect(std::string URL)
         _service->set_option(YOPT_S_CONNECT_TIMEOUT, 5);
         _service->set_option(YOPT_C_MOD_FLAGS, 0, YCF_REUSEADDR, 0);
         _service->set_option(YOPT_C_LFBFD_PARAMS, 1, 65535, 0, 4, 0);
-        _service->set_option(YOPT_S_DEFERRED_EVENT, 0); // disable event queue             
+        _service->set_option(YOPT_S_DEFERRED_EVENT, 0); // disable event queue           
 
         _service->start([&, this](event_ptr ev) {
             switch (ev->kind())
             {            
             case YEK_PACKET:
                 //data                             
-                if (!ev->packet().empty()){
-                    printf("[%lld] PACKET RECEIVED, status=%d\n", ev->timestamp(), ev->status());
+                if (!ev->packet().empty()){                                  
                     _onData(std::move(ev->packet()), "");
                 }                
                 break;
             case YEK_CONNECT_RESPONSE:           
                 //new connection                
-                _client = ev->transport();                                
+                _client = ev->transport();     
+                //setup_kcp_transfer(_client);
                 status.exchange(0);          
-                Status(ConnectionStatus::ONLINE);     
-                printf("[%lld] A client CONNECTED, status=%d\n", ev->timestamp(), ev->status());
+                Status(ConnectionStatus::ONLINE);                     
                 break;
             case YEK_CONNECTION_LOST:
                 //losted connection
                 status.exchange(2);          
-                Status(ConnectionStatus::OFFLINE);    
-                printf("[%lld] A client LOST, status=%d\n", ev->timestamp(), ev->status());
+                Status(ConnectionStatus::OFFLINE);                    
                 break;
             }            
         });
@@ -151,6 +145,7 @@ void KcpTransport::setup_kcp_transfer(transport_handle_t handle)
   auto kcp_handle = static_cast<io_transport_kcp*>(handle)->internal_object();
   ::ikcp_setmtu(kcp_handle, YASIO_SZ(63, k));
   ::ikcp_wndsize(kcp_handle, 4096, 8192);
+  ::ikcp_nodelay(kcp_handle, 1, 20, 2, 1);
   
 }
 
@@ -160,11 +155,13 @@ bool KcpTransport::send(char * buff, int size, std::string socket_id, msgHeader 
 {            
     if (Status() != ConnectionStatus::ONLINE) return false;
     std::vector<char> data;
-    BufferEasy msg(&data);    
+    data.insert(data.end(), buff, buff+size);
+    
+    //BufferEasy msg(&data);    
 
-    msg.appendUint16(1);   
-    msg.append((char*)buff, size);                    
-        
+    //msg.appendUint16(1);   
+    //msg.append((char*)buff, size);                    
+    //std::cerr << "sending: " <<  data.data() << std::endl;              
     try {
          if (Type() == InstanceType::SERVER){                  
             //server
@@ -201,31 +198,17 @@ void KcpTransport::close()
    status.exchange(9);
 }
 
-void KcpTransport::_onData(std::vector<char> data, string id) {           
-
-
-    std::vector<unsigned char> decdata ; //need to survive after the IF    
-
-    char * rdata;
-    int rsize;   
-    BufferEasy msg(&data);       
-    
-    
-    uint16_t type = msg.readUint16();    
-    rdata = (char*)msg.data();
-    rsize = msg.size();       
-    _reviewMessage(id, rdata, rsize);    
-}
-
-void KcpTransport::_reviewMessage(string id, char* data, int size){   
+void KcpTransport::_onData(std::vector<char> data, string id) {                   
+    //_reviewMessage(id, data.data(), data.size());   
     if (Type() == InstanceType::SERVER){    
         //std::cerr << "KCP: SERVER message received" << std::endl;                                                       
-        callbackData(id, data, size);                                     
+        callbackData(id, std::move(data));                                     
     } else {        
         //std::cerr << "KCP: CLIENT message received" << std::endl;                                                       
-        callbackData("", data, size);         
-    }
+        callbackData("",  std::move(data));         
+    }    
 }
+
 
 
 void KcpTransport::_newConnection(event_ptr& ev){                     

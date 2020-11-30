@@ -70,7 +70,7 @@ void acroTransport::Type(InstanceType newState){
     lktmp.unlock();    
 }
 
-void acroTransport::onData(CallbackSocket callback) 
+void acroTransport::onData(CallbackSocketVector callback) 
 {        
     callbackData = callback;
 }

@@ -24,12 +24,12 @@ enum ConnectionState
 
 typedef std::function<void(string, char *, int)> CallbackSocket; //socket_id, char, size
 typedef std::function<void(string, ConnectionState, json)> CallbackConnection; //char, size, socket_id
-
+typedef std::function<void(string, vector<char>)> CallbackSocketVector; //socket_id, char, size
 class acroTransport 
 {        
     protected:                               
         json options;
-        CallbackSocket  callbackData = NULL;        
+        CallbackSocketVector  callbackData = NULL;        
         CallbackConnection  callbackConnection = NULL;   
         std::function<void(string)> callbackOnError = NULL;
         std::function<void(ConnectionStatus)> callbackOnStatus = NULL;
@@ -60,7 +60,7 @@ class acroTransport
         
         virtual bool connect(string URL); 
         
-        virtual void onData(CallbackSocket callback);
+        virtual void onData(CallbackSocketVector callback);
         virtual void onConnection(CallbackConnection callback);
         virtual void onStatus(std::function<void(ConnectionStatus)> callback);
         virtual void onError(std::function<void(string)> callback);

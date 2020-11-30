@@ -1,0 +1,21 @@
+{
+  "name": "acrobatic_cpp",
+  "version": "0.0.1",
+  "description": "Fill Out a Native Array in JavaScript",
+  "main": "jstest/test/index_kcp.js",
+  "private": true,
+  "gypfile": true,
+  "scripts": {
+    "start": "node index.js",
+    "rebuild:dev": "node-gyp rebuild --debug",
+    "build:dev": "node-gyp build --debug",
+    "clean": "node-gyp clean"
+  },
+  "devDependencies": {
+    "node-gyp": "^3.7.0"
+  },
+  "dependencies": {
+    "bindings": "~1.2.1",
+    "node-addon-api": "^3.0.2"
+  }
+}
