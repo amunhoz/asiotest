@@ -40,10 +40,7 @@
 			"libraries": [				
 			],
 			"link_settings": {
-				"libraries": [
-					"-lpthread",					
-					"-levent",
-					"-lstdc++fs"					
+				"libraries": [								
 				]
 			},
 			"defines": [

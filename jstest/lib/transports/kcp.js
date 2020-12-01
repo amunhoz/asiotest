@@ -1,7 +1,7 @@
 "use strict"; 
 
 const base = require("./base")
-const binding = require('../../../build/Release/transport.node');
+const binding = require('../../../build/Release/libtransport.node');
 module.exports = class AcroTransport extends base {
     constructor(options){
         super()
