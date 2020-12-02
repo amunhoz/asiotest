@@ -7,6 +7,7 @@ const socks = require("./socks/socks")
 const sleep = m => new Promise(r => setTimeout(r, m))
 const streamBackpressure = require("./stream")
 const pcheck = require("./protocolcheck")
+const PACKET_SIZE_LIMIT = 60*1024
 
 module.exports = class proxyClient extends events{
     constructor(transport, options) {
@@ -102,7 +103,14 @@ module.exports = class proxyClient extends events{
 
             socket.on("data", (buff)=>{
                 if (ended) return
-                this.sendData(id, buff)
+                if (buff.length > PACKET_SIZE_LIMIT) {
+                    this.sendData(id, buff.slice(0,PACKET_SIZE_LIMIT))
+                    this.sendData(id, buff.slice(PACKET_SIZE_LIMIT))
+                } else {
+                    this.sendData(id, buff)                    
+                }
+                
+                
                 self._checkLimitRate(id);        
             })            
             var closeFunc = ()=>{

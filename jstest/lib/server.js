@@ -7,6 +7,7 @@ const LRU = require("lru-cache")
 const micromatch = require('micromatch');
 const common = require("./common")
 const pcheck = require("./protocolcheck")
+const PACKET_SIZE_LIMIT = 60*1024
 
 //const speedometer = require('speedometer')
 
@@ -16,6 +17,7 @@ module.exports = class proxyServer extends events{
         try {
             this.tranportClass = require("./transports/" + transport)
         } catch (e){
+            console.log(e)
             throw new Error("Transport does not exists:" + transport)
         }
         
@@ -147,12 +149,12 @@ module.exports = class proxyServer extends events{
             var ended = false         
             var finalized = false   
             self.conns[id].socket.on("connect",()=>{                      
-                const sizelimit = 60*1024
+                
                 self.conns[id].socket.on("data", (buff)=>{
                     if (ended) return                    
-                    if (buff.length > sizelimit) {
-                        self.sendData(socketId, id, buff.slice(0,sizelimit))
-                        self.sendData(socketId, id, buff.slice(sizelimit))
+                    if (buff.length > PACKET_SIZE_LIMIT) {
+                        self.sendData(socketId, id, buff.slice(0,PACKET_SIZE_LIMIT))
+                        self.sendData(socketId, id, buff.slice(PACKET_SIZE_LIMIT))
                     } else {
                         self.sendData(socketId, id, buff)
                     }

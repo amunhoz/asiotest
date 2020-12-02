@@ -31,6 +31,9 @@ async function start() {
         }
     })    
     await client.connect(address)  
+    //await client.connect("80.211.184.71:5557")  
+    
+
     await client.listen(3129)
     
     client.on("log",(info) =>{

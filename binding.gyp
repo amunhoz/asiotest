@@ -1,7 +1,7 @@
 {
 	"targets": [
 		{
-			"target_name": "libtransport",
+			"target_name": "transport",
 			"cflags!": [],
 			"cflags_cc": [
 				"-std=c++17",
