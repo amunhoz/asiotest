@@ -99,8 +99,9 @@ module.exports = class proxyServer extends events{
 
     _send(socketId, data) {        
         try {            
-            data = this.checks[socketId].build(data)
-            this.transport.send(data, socketId);            
+            
+            data = this.checks[socketId].build(data)            
+           this.transport.send(data, socketId);            
         } catch(e) {
             this.emit("error", e, {socketId: socketId})
         }    
@@ -145,15 +146,19 @@ module.exports = class proxyServer extends events{
                    
             var ended = false         
             var finalized = false   
-            self.conns[id].socket.on("connect",()=>{      
-                //self.conns[id].remoteIp = self.conns[id].socket.remoteAddress 
-                // normal net socket 
-                            
+            self.conns[id].socket.on("connect",()=>{                      
+                const sizelimit = 60*1024
                 self.conns[id].socket.on("data", (buff)=>{
                     if (ended) return                    
-                    self.sendData(socketId, id, buff)
+                    if (buff.length > sizelimit) {
+                        self.sendData(socketId, id, buff.slice(0,sizelimit))
+                        self.sendData(socketId, id, buff.slice(sizelimit))
+                    } else {
+                        self.sendData(socketId, id, buff)
+                    }
+                    
                     self._checkLimitRate(id);                    
-                })
+                })                 
                 self.conns[id].socket.setNoDelay(true);
                 self.conns[id].socket.setKeepAlive(true);
                 self.conns[id].socket.setTimeout(15000)                     

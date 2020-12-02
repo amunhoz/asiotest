@@ -7,14 +7,16 @@ module.exports = class Protocolcheck {
   }
   parse(chunk){              
     let num = chunk.readUInt32BE(0);
-    if (this.received+1 != num) console.log("wrong order", this.received, num)    
+    if (this.received+1 != num) 
+      console.log("wrong order", this.received, num)    
     this.received = num
     console.log("received",num)
     let hashp = chunk.slice(4,6).toString("hex")
   
     let part = chunk.slice(6)
     let hasho = crc.checkSum(part)
-    if (hashp != hasho) console.log("wrong checksum")
+    if (hashp != hasho) 
+      console.log("wrong checksum")
     return part
   }
   build(chunk){
@@ -23,8 +25,8 @@ module.exports = class Protocolcheck {
     head.writeUInt32BE(this.sended);
     let hash = crc.checkSum(chunk, {retType: 'array'});    
     head[4] = hash[0]
-    head[5] = hash[1]
-    //console.log("sended", this.sended)
+    head[5] = hash[1]    
+    console.log("sended", this.sended, chunk.length)
     return Buffer.concat([head, chunk])
   }
    

@@ -47,16 +47,15 @@ module.exports = class AcroTransport extends base {
              while(true) {
                  let item = self.instance.getData()
                  if (item==false) break;                
-                 self.emit("data",Buffer.from(item.data), item.socket)         
+                 let data = Buffer.from(item.data)                 
+                 self.emit("data",data, item.socket)         
              }                                        
         })
 
         return true
     }
     send(data, socket) {
-        if (!socket) {            
-            socket = ""
-        }                
+        if (!socket) socket = ""                
         this.instance.send(socket, Buffer.from(data))
     }
     close() {

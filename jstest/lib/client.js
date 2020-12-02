@@ -193,8 +193,9 @@ module.exports = class proxyClient extends events{
     }
 
     _send(data){      
-        data = this.check.build(data)
-        this.transport.send(data);
+        
+        data = this.check.build(data)                
+        this.transport.send(data); 
     }
 
     handleData(buff) {
