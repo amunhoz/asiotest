@@ -73,13 +73,13 @@ bool KcpTransport::listen(std::string URL)
         _service->open(0, _serverType);                        
         status.exchange(0);          
         Status(ConnectionStatus::ONLINE);            
-        if(DEBUG) std::cerr << "KCP: listen success"<< std::endl;    
+        if(DEBUG_MODE) std::cerr << "KCP: listen success"<< std::endl;    
         return true;
 	}
 	catch( exception& e ) {
         return false;
     }  
-    if(DEBUG) std::cerr << "KCP: listen success"<< std::endl;          
+    if(DEBUG_MODE) std::cerr << "KCP: listen success"<< std::endl;          
 }
 
 
@@ -136,7 +136,7 @@ bool KcpTransport::connect(std::string URL)
         cout << "Error in connect" << e.what() << '\n';                
         return false;
     }    
-    if(DEBUG) std::cerr << "KCP: connect success"<< std::endl;          
+    if(DEBUG_MODE) std::cerr << "KCP: connect success"<< std::endl;          
     
 }
 

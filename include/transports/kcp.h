@@ -44,7 +44,7 @@ class KcpTransport : public acroTransport
         void _init();             
         void setup_kcp_transfer(transport_handle_t handle);
           
-        bool DEBUG = false;        
+        bool DEBUG_MODE = false;
 
         //client vars
         json infoConn;

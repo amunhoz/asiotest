@@ -28,7 +28,7 @@ public:
 private:    
     
     static Napi::FunctionReference constructor;
-    bool DEBUG =false;
+    bool DEBUG_MODE =false;
     Napi::Value Listen(const Napi::CallbackInfo&);
     Napi::Value Connect(const Napi::CallbackInfo&);
     Napi::Value Send(const Napi::CallbackInfo&);
