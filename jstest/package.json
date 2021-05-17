@@ -13,8 +13,8 @@
     "ip": "^1.1.5",
     "lru-cache": "^6.0.0",
     "md5": "^2.3.0",
+    "node-crc16": "git://github.com/halx99/crc16.git#v2.0.7",
     "micromatch": "^4.0.2",
-    "node-crc16": "^2.0.7",
     "uniqid": "^5.2.0",
     "ws": "^7.4.0",
     "xbytes": "^1.6.2"

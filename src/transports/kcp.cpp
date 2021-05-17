@@ -1,5 +1,4 @@
 
-#define YASIO_HAVE_KCP
 #include <transports/kcp.h>
 #include <utils/random.h>
 #include <utils/time.h>
@@ -7,7 +6,7 @@
 #include "kcp/ikcp.h"
 
 #include <node.h>
-#include <v8.h>
+#include <v8.h> 
 
 using namespace std;
 using namespace yasio;

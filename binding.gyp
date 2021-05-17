@@ -42,7 +42,8 @@
 				]
 			},
 			"defines": [
-				"NAPI_DISABLE_CPP_EXCEPTIONS"				
+				"NAPI_DISABLE_CPP_EXCEPTIONS",
+				"YASIO_HAVE_KCP=1"			
 			]
 		}
 	]
