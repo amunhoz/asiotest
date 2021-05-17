@@ -6,6 +6,9 @@
 #include <utils/easybuffer.h>
 #include "kcp/ikcp.h"
 
+#include <node.h>
+#include <v8.h>
+
 using namespace std;
 using namespace yasio;
 using namespace yasio::inet;
@@ -221,7 +224,7 @@ void KcpTransport::_newConnection(event_ptr& ev){
     KCPConnection item;    
     //create item
     //---------------------------
-    item.id = ev->transport_id();    
+    item.id = ev->source_id();    
     //item.ip = conn->remote_point.address().to_string();
     //item.port = conn->remote_point.port();
     //item.info["ip"] = item.ip ;                
@@ -251,7 +254,7 @@ void KcpTransport::_dropConnection(std::string sid) {
 
 
 std::string KcpTransport::_getId(event_ptr& ev) {   
-    return to_string(ev->transport_id());
+    return to_string(ev->source_id());
 }
 
 

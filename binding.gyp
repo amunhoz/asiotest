@@ -23,8 +23,6 @@
 				"src_gyp/nodetransport.cpp",
 				"src_gyp/exportclass.cpp",
 				"packages/kcp/ikcp.c",
-				"packages/yasio/yasio/ibstream.cpp",
-				"packages/yasio/yasio/obstream.cpp",
 				"packages/yasio/yasio/xxsocket.cpp",
 				"packages/yasio/yasio/yasio.cpp"
 			],

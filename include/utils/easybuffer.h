@@ -89,7 +89,7 @@ class BufferEasy {
              int bsize = sizeof be16;
              ::memcpy(&be16, data(), bsize);
              readPointer += bsize;
-             return yasio::endian::ntohv(be16);
+             return yasio::network_to_host(be16);
         }
 
         uint16_t readUint16() {
@@ -105,7 +105,7 @@ class BufferEasy {
             int bsize = sizeof be32;
             ::memcpy(&be32, data(), bsize);
             readPointer += bsize;
-            return yasio::endian::ntohv(be32);
+            return yasio::network_to_host(be32);
         }
         
         uint32_t readUint32() {
@@ -127,7 +127,7 @@ class BufferEasy {
             int bsize = sizeof be64;
             ::memcpy(&be64, data(), bsize);
             readPointer += bsize;
-            return yasio::endian::ntohv(be64);
+            return yasio::network_to_host(be64);
         }
 
         int size() {
