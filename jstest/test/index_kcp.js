@@ -1,4 +1,4 @@
-const NetTransport = require("../lib/kcp.js");
+const NetTransport = require("../lib/yasio.js");
 var address = "127.0.0.1:5557"
 async function start() {
     let options = {
@@ -6,7 +6,7 @@ async function start() {
         interval: 40,
         resend:1,
         nc: 1,
-        mtu:1500, 
+        mtu:25000, 
         sndwnd:8192,
         opt_rcvwnd:8192
     }
@@ -23,7 +23,7 @@ async function start() {
         console.log("client:" , Buffer.from(data).length)        
     })  
     setTimeout(async()=>{                
-        client.send("a".repeat(1450))        
+        client.send("a".repeat(10450))        
     },1000)
 }
 

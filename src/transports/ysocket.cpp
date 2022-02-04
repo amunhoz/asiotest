@@ -1,5 +1,5 @@
 
-#include <transports/kcp.h>
+#include <transports/ysocket.h>
 #include <utils/random.h>
 #include <utils/time.h>
 #include <utils/easybuffer.h>
@@ -12,18 +12,18 @@ using namespace std;
 using namespace yasio;
 using namespace yasio::inet;
 
-KcpTransport::KcpTransport(){    
+YasioTransport::YasioTransport(){    
     status=-1;    
     _init();
 }
-KcpTransport::KcpTransport(std::string jOptions):acroTransport(jOptions){
+YasioTransport::YasioTransport(std::string jOptions):acroTransport(jOptions){
     status=-1;
     options = json::parse(jOptions);
     _init();
     //initialize encryption
 }
 
-void KcpTransport::_init() {    
+void YasioTransport::_init() {    
    //initialize maps
     connections = std::make_shared<   std::map<std::string , KCPConnection>    >
                                     (
@@ -32,11 +32,19 @@ void KcpTransport::_init() {
     _checkOptions();
     
 }
-void KcpTransport::_checkOptions() {   
-     
+void YasioTransport::_checkOptions() {           
+    std::string opt_type;
+    if (options.find("type") != options.end()) opt_type =  options["type"].get<string>();      
+    if (opt_type =="kcp"){
+        _serverType = YCK_KCP_SERVER;
+        _clientType = YCK_KCP_CLIENT;
+    } else if (opt_type =="tcp"){
+        _serverType = YCK_TCP_SERVER;
+        _clientType = YCK_TCP_CLIENT;
+    }
 }
 
-bool KcpTransport::listen(std::string URL)
+bool YasioTransport::listen(std::string URL)
 {            
     Type(InstanceType::SERVER);    
 
@@ -87,7 +95,7 @@ bool KcpTransport::listen(std::string URL)
 
 
 
-bool KcpTransport::connect(std::string URL)
+bool YasioTransport::connect(std::string URL)
 {            
     Type(InstanceType::CLIENT);    
 
@@ -143,7 +151,7 @@ bool KcpTransport::connect(std::string URL)
     
 }
 
-void KcpTransport::setup_kcp_transfer(transport_handle_t handle)
+void YasioTransport::setup_kcp_transfer(transport_handle_t handle)
 {
     auto kcp_handle = static_cast<io_transport_kcp*>(handle)->internal_object();    
     
@@ -167,7 +175,7 @@ void KcpTransport::setup_kcp_transfer(transport_handle_t handle)
 
 
 
-bool KcpTransport::send(char * buff, int size, std::string socket_id)
+bool YasioTransport::send(char * buff, int size, std::string socket_id)
 {            
     if (Status() != ConnectionStatus::ONLINE) return false;
     std::vector<char> data;
@@ -195,7 +203,7 @@ bool KcpTransport::send(char * buff, int size, std::string socket_id)
     return true;
 }
 
-void KcpTransport::closePeer(std::string socket_id)
+void YasioTransport::closePeer(std::string socket_id)
 {      
     if (Type() != InstanceType::SERVER) return;
     if (!connections->count(socket_id)) return;     
@@ -203,7 +211,7 @@ void KcpTransport::closePeer(std::string socket_id)
     
 }
 
-void KcpTransport::close()
+void YasioTransport::close()
 {           
    if (Type() == InstanceType::SERVER) {
        _service->stop();
@@ -213,7 +221,7 @@ void KcpTransport::close()
    status.exchange(9);
 }
 
-void KcpTransport::_onData(std::vector<char> data, string id) {                   
+void YasioTransport::_onData(std::vector<char> data, string id) {                   
     //_reviewMessage(id, data.data(), data.size());   
     if (Type() == InstanceType::SERVER){    
         //std::cerr << "KCP: SERVER message received" << std::endl;                                                       
@@ -226,7 +234,7 @@ void KcpTransport::_onData(std::vector<char> data, string id) {
 
 
 
-void KcpTransport::_newConnection(event_ptr& ev){                     
+void YasioTransport::_newConnection(event_ptr& ev){                     
     std::string id = _getId(ev);
     if (connections->count(id)) {      
         //std::cerr << "KCP: addnew DROP CONNECTION?" << std::endl;                 
@@ -251,7 +259,7 @@ void KcpTransport::_newConnection(event_ptr& ev){
 
 
 
-void KcpTransport::_dropConnection(std::string sid) { 
+void YasioTransport::_dropConnection(std::string sid) { 
     if (connections->count(sid)) {
         KCPConnection* item = &connections->at(sid);
         if (callbackConnection!=NULL) {                
@@ -265,7 +273,7 @@ void KcpTransport::_dropConnection(std::string sid) {
 }
 
 
-std::string KcpTransport::_getId(event_ptr& ev) {   
+std::string YasioTransport::_getId(event_ptr& ev) {   
     return to_string(ev->source_id());
 }
 

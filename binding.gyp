@@ -19,7 +19,7 @@
 				"src/utils/random.cpp",
 				"src/utils/time.cpp",	
 				"src/transports/base.cpp",
-				"src/transports/kcp.cpp",																		
+				"src/transports/ysocket.cpp",																		
 				"src_gyp/nodetransport.cpp",
 				"src_gyp/exportclass.cpp",
 				"src_gyp/thread-safe-callback.cpp",

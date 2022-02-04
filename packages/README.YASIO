@@ -4,3 +4,9 @@ ATIVAR YASIO_HAVE_KCP
 
 
 packages/yasio/yasio/yasio.cpp
+
+packages/yasio/yasio/detail/logging.hpp
+
+#  define YASIO_LOG_TAG(tag, format, ...) printf((tag format "\n"), ##__VA_ARGS__)
+
+#  define YASIO_LOG_TAG(tag, format, ...) (void)0

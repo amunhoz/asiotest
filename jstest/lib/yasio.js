@@ -7,7 +7,7 @@ module.exports = class AcroTransport extends base {
         super()
         if (!options) options = {}
         this.options = options
-        this.instance = new binding.transport("kcp",  JSON.stringify(options))        
+        this.instance = new binding.transport("yasio",  JSON.stringify(options))        
         var self = this
         
         this.instance.onError( (desc)=>{ // receive stream request response  

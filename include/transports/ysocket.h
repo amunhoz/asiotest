@@ -16,7 +16,7 @@ using namespace std;
 using namespace yasio::inet;
 
 
-class KcpTransport : public acroTransport
+class YasioTransport : public acroTransport
 {        
     protected:                
         typedef struct {	
@@ -54,9 +54,6 @@ class KcpTransport : public acroTransport
 
         int _serverType = YCK_KCP_SERVER;
         int _clientType = YCK_KCP_CLIENT;
-        
-                       
-        std::mutex _controlMsgs; 
                        
     private: 
         
@@ -64,8 +61,8 @@ class KcpTransport : public acroTransport
     public:           
         string Host;
         int Port;
-        KcpTransport();
-        KcpTransport(std::string jOptions);
+        YasioTransport();
+        YasioTransport(std::string jOptions);
         bool listen(std::string URL);        
         bool connect(std::string URL);                 
         bool send(char * buff, int size, std::string socket_id);          

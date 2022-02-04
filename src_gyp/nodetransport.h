@@ -5,7 +5,7 @@
 #include <napi.h>
 
 #include <cmath>
-#include <transports/kcp.h>
+#include <transports/ysocket.h>
 #include <utils/random.h>
 #include "thread-safe-callback.h"
 

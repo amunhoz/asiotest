@@ -42,8 +42,8 @@ Napi::Value LibNodeTransport::Listen(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();    
     string address = info[0].As<Napi::String>().Utf8Value();    
     try {             
-        if (v_type == "kcp") {                                                          
-            socket = new KcpTransport (v_config);        
+        if (v_type == "yasio") {                                                          
+            socket = new YasioTransport(v_config);        
         } else {            
             Napi::TypeError::New(env, "No transport type found")
             .ThrowAsJavaScriptException();
@@ -66,9 +66,9 @@ Napi::Value LibNodeTransport::Connect(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
     bool result =false;    
     string address = info[0].As<Napi::String>().Utf8Value();    
-    try {	                  
-        if (v_type == "kcp") {                                                          
-            socket = new KcpTransport (v_config);                
+    try {	                           
+        if (v_type == "yasio") {                                                          
+            socket = new YasioTransport (v_config);                
         }else {
             Napi::TypeError::New(env, "No transport type found")
             .ThrowAsJavaScriptException();
