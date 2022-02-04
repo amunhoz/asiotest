@@ -7,7 +7,7 @@
 #include <cmath>
 #include <transports/kcp.h>
 #include <utils/random.h>
-
+#include "thread-safe-callback.h"
 
 using namespace Napi;
 
@@ -22,8 +22,6 @@ class LibNodeTransport : public Napi::ObjectWrap<LibNodeTransport>
 public:
     static Napi::Object Init(Napi::Env env, Napi::Object exports);
     LibNodeTransport(const Napi::CallbackInfo&);
-    //~LibNodeTransport() override = default;
-
 
 private:    
     
@@ -39,9 +37,7 @@ private:
 
     void OnError(const Napi::CallbackInfo& info);
     void OnStatus(const Napi::CallbackInfo& info);
-    void OnConnection(const Napi::CallbackInfo& info);
-    Napi::Value  GetData(const Napi::CallbackInfo& info);
-    void OnDataInternal(std::string socket, std::vector<char> data);    
+    void OnConnection(const Napi::CallbackInfo& info);        
 
     Napi::Value Status(const Napi::CallbackInfo& info);
         
@@ -50,22 +46,14 @@ private:
 
     void _loadEvents(string type);
 
-    //Acrobatic socket;    
-    //std::shared_ptr< acroTransport > socket;  
+    //Acrobatic socket;        
     acroTransport* socket;  
 
-    //map<string, cBackInfo*> subzCallbacks;        
-    std::shared_ptr<Napi::ThreadSafeFunction> data_Callback;
-    std::shared_ptr<Napi::ThreadSafeFunction> err_Callback;    
-    std::shared_ptr<Napi::ThreadSafeFunction> status_Callback;    
-    std::shared_ptr<Napi::ThreadSafeFunction> connection_Callback;    
-    std::shared_ptr<Napi::ThreadSafeFunction> clientstatus_Callback;  
-
-    int cacheLimit = 300;
-    int cacheExpire = 30;
-    std::mutex _control;                     
-    std::shared_ptr<queue<Packet>> cache;   
-            
+    std::unique_ptr<ThreadSafeCallback> data_Callback  = nullptr;
+    std::unique_ptr<ThreadSafeCallback> err_Callback  = nullptr;
+    std::unique_ptr<ThreadSafeCallback> status_Callback  = nullptr;    
+    std::unique_ptr<ThreadSafeCallback> connection_Callback  = nullptr;    
+                        
     int count=0;
     string v_config = "{}";
     string v_type = "kcp";

@@ -68,7 +68,7 @@ class KcpTransport : public acroTransport
         KcpTransport(std::string jOptions);
         bool listen(std::string URL);        
         bool connect(std::string URL);                 
-        bool send(char * buff, int size, std::string socket_id, msgHeader * header);          
+        bool send(char * buff, int size, std::string socket_id);          
         void close(); 
         void closePeer(std::string socket_id);              
        

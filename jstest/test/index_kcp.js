@@ -1,53 +1,30 @@
-const Server = require("../lib/server.js");
-const Client = require("../lib/client.js")
+const NetTransport = require("../lib/kcp.js");
 var address = "127.0.0.1:5557"
 async function start() {
-
-    let server = new Server("kcp", {        
-        //maxRate: 5*1024*1024,        
-        acl: [
-            {route: "127.0.0*", action:"block"},
-            //{direction: "out", route: "www.google.com*", action:"block"}
-        ],
-        transport:{
-            kcp_nodelay: true,
-            kcp_interval: 10,
-            kcp_resend:2,
-            kcp_congestion: false,
-        }
-    })    
+    let options = {
+        nodelay:1,
+        interval: 40,
+        resend:1,
+        nc: 1,
+        mtu:1500, 
+        sndwnd:8192,
+        opt_rcvwnd:8192
+    }
+    let server = new NetTransport(options)    
     await server.listen(address)  
-    server.on("request", (data, reply)=>{
-        console.log(data)
-        reply({hi:"there"})
+    server.on("data", (data, socket)=>{
+        console.log("socket:" + socket, Buffer.from(data).length)        
+        server.send("d".repeat(1000), socket)
     })  
  
-    let client = new Client("kcp",{               
-        transport:{        
-            kcp_nodelay: true,
-            kcp_interval: 10,
-            kcp_resend:2,
-            kcp_congestion: false,
-        }
-    })    
+    let client = new NetTransport(options)    
     await client.connect(address)  
-    //await client.connect("80.211.184.71:5557")  
-    
-
-    await client.listen(3129)
-    
-    client.on("log",(info) =>{
-        //console.log(info)
-    })
-
-    setTimeout(async()=>{
-        
-        console.log("go test")
-        let test = await client.request({cmd:"route"}, 30*1000)
-        //let test = await clientx.request({cmd:"dns", domain:"verifact.com.br", ips:['172.67.183.223']}, 30*1000)
-        //let ips = getIps(test.dns, "ipv4")
-        console.log(test)
-    },2000)
+    client.on("data", (data, socket)=>{
+        console.log("client:" , Buffer.from(data).length)        
+    })  
+    setTimeout(async()=>{                
+        client.send("a".repeat(1450))        
+    },1000)
 }
 
 start().catch((e)=>{

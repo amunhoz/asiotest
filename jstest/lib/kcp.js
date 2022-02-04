@@ -1,13 +1,13 @@
 "use strict"; 
 
 const base = require("./base")
-const binding = require('../../../build/Release/transport.node');
+const binding = require('../../build/Release/transport.node');
 module.exports = class AcroTransport extends base {
     constructor(options){
         super()
         if (!options) options = {}
         this.options = options
-        this.instance = new binding.transport("kcp", "{}")
+        this.instance = new binding.transport("kcp",  JSON.stringify(options))        
         var self = this
         
         this.instance.onError( (desc)=>{ // receive stream request response  
@@ -27,12 +27,8 @@ module.exports = class AcroTransport extends base {
         var self = this
         this.instance.onData((buff, socket)=>{ 
             //prepared for two methods, with or without getdata
-            if (buff) return self.emit("data",Buffer.from(buff), socket)                     
-            while(true) {
-                let item = self.instance.getData()
-                if (item==false) break;                
-                self.emit("data",Buffer.from(item.data), item.socket)         
-            }            
+            if (buff) 
+                return self.emit("data",Buffer.from(buff), socket)                                 
           })
           return true
     }
@@ -43,19 +39,13 @@ module.exports = class AcroTransport extends base {
         var self = this
         this.instance.onData((buff, socket)=>{ //simple event            
              //prepared for two methods, with or without getdata
-             if (buff) return self.emit("data",Buffer.from(buff), socket)                     
-             while(true) {
-                 let item = self.instance.getData()
-                 if (item==false) break;                
-                 let data = Buffer.from(item.data)                 
-                 self.emit("data",data, item.socket)         
-             }                                        
+             if (buff) 
+                return self.emit("data",Buffer.from(buff), socket)                                                                   
         })
-
         return true
     }
     send(data, socket) {
-        if (!socket) socket = ""                
+        if (!socket) socket = ""                        
         this.instance.send(socket, Buffer.from(data))
     }
     close() {

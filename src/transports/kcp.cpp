@@ -63,7 +63,7 @@ bool KcpTransport::listen(std::string URL)
                 break;
             case YEK_CONNECT_RESPONSE:
                 //new connection                
-                //setup_kcp_transfer(ev->transport());
+                setup_kcp_transfer(ev->transport());
                 _newConnection(ev);                
                 break;
             case YEK_CONNECTION_LOST:
@@ -79,6 +79,7 @@ bool KcpTransport::listen(std::string URL)
         return true;
 	}
 	catch( exception& e ) {
+        fprintf(stderr, "(KCP) CANT LISTEN: %s\n",  e.what());  
         return false;
     }  
     if(DEBUG_MODE) std::cerr << "KCP: listen success"<< std::endl;          
@@ -118,7 +119,7 @@ bool KcpTransport::connect(std::string URL)
             case YEK_CONNECT_RESPONSE:           
                 //new connection                
                 _client = ev->transport();     
-                //setup_kcp_transfer(_client);
+                setup_kcp_transfer(_client);
                 status.exchange(0);          
                 Status(ConnectionStatus::ONLINE);                     
                 break;
@@ -135,7 +136,7 @@ bool KcpTransport::connect(std::string URL)
 
         return true;
     } catch( exception& e ) {
-        cout << "Error in connect" << e.what() << '\n';                
+        fprintf(stderr, "(KCP) CANT CONNECT: %s\n",  e.what());          
         return false;
     }    
     if(DEBUG_MODE) std::cerr << "KCP: connect success"<< std::endl;          
@@ -144,39 +145,51 @@ bool KcpTransport::connect(std::string URL)
 
 void KcpTransport::setup_kcp_transfer(transport_handle_t handle)
 {
-  auto kcp_handle = static_cast<io_transport_kcp*>(handle)->internal_object();
-  ::ikcp_setmtu(kcp_handle, YASIO_SZ(63, k));
-  ::ikcp_wndsize(kcp_handle, 4096, 8192);
-  ::ikcp_nodelay(kcp_handle, 1, 20, 2, 1);
-  
+    auto kcp_handle = static_cast<io_transport_kcp*>(handle)->internal_object();    
+    
+    int opt_nodelay=1, opt_interval=20, opt_resend =2, opt_nc=1;    
+    if (options.find("nodelay") != options.end()) opt_nodelay =  options["nodelay"].get<int>();        
+    if (options.find("interval") != options.end()) opt_interval =  options["interval"].get<int>();        
+    if (options.find("resend") != options.end()) opt_resend =  options["resend"].get<int>();        
+    if (options.find("nc") != options.end()) opt_nc =  options["nc"].get<int>();        
+    ::ikcp_nodelay(kcp_handle, opt_nodelay, opt_interval, opt_resend, opt_nc);
+
+    int opt_mtu=1400;
+    if (options.find("mtu") != options.end()) opt_mtu =  options["mtu"].get<int>();   
+    ::ikcp_setmtu(kcp_handle, opt_mtu);
+
+    int opt_sndwnd=8192, opt_rcvwnd=8192;
+    if (options.find("sndwnd") != options.end()) opt_sndwnd =  options["sndwnd"].get<int>();   
+    if (options.find("rcvwnd") != options.end()) opt_sndwnd =  options["rcvwnd"].get<int>();       
+    ::ikcp_wndsize(kcp_handle, opt_rcvwnd, 8192);
+ 
 }
 
 
 
-bool KcpTransport::send(char * buff, int size, std::string socket_id, msgHeader * header)
+bool KcpTransport::send(char * buff, int size, std::string socket_id)
 {            
     if (Status() != ConnectionStatus::ONLINE) return false;
     std::vector<char> data;
-    data.insert(data.end(), buff, buff+size);
-    
-    //BufferEasy msg(&data);    
-
-    //msg.appendUint16(1);   
-    //msg.append((char*)buff, size);                    
-    //std::cerr << "sending: " <<  data.data() << std::endl;              
+    data.insert(data.end(), buff, buff+size); 
     try {
-         if (Type() == InstanceType::SERVER){                  
+         if (Type() == InstanceType::SERVER){                               
             //server
             if (socket_id !="" && socket_id.length() >0) {
-                if (!connections->count(socket_id)) return false;                                                                                
-                _service->write(connections->at(socket_id).socket, std::move(data));                                          
-            } else {                
+                if (!connections->count(socket_id)){
+                    fprintf(stderr, "(KCP) SERVER ERROR: Socket not found on send message!! %s\n", socket_id);                        
+                    return false; // cant send
+                } 
+               _service->write(connections->at(socket_id).socket, std::move(data));                                                          
+            } else {         
+                fprintf(stderr, "(KCP) SERVER ERROR: Socket empty on send message!!\n");                        
                 return false;                          
             } 
         } else {  
             _service->write(_client, std::move(data));                                                      
         }
-    } catch( exception& e ) {                
+    } catch( exception& e ) {                        
+        fprintf(stderr, "(KCP) CANT SEND MESSAGE: %s\n",  e.what());  
         return false;
     }            
     return true;

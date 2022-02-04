@@ -65,8 +65,8 @@ class acroTransport
         virtual void onStatus(std::function<void(ConnectionStatus)> callback);
         virtual void onError(std::function<void(string)> callback);
         
-        virtual bool send(char * buff, int size, msgHeader * header = {});  
-        virtual bool send(char * buff, int size, string socket_id, msgHeader * header = {});  
+        virtual bool send(char * buff, int size);  
+        virtual bool send(char * buff, int size, string socket_id);
         
         virtual void closePeer(string socket_id);
         virtual void close();         

@@ -19,15 +19,17 @@
 				"src/utils/random.cpp",
 				"src/utils/time.cpp",	
 				"src/transports/base.cpp",
-				"src/transports/kcp.cpp",											
+				"src/transports/kcp.cpp",																		
 				"src_gyp/nodetransport.cpp",
 				"src_gyp/exportclass.cpp",
+				"src_gyp/thread-safe-callback.cpp",
 				"packages/kcp/ikcp.c",
 				"packages/yasio/yasio/xxsocket.cpp",
 				"packages/yasio/yasio/yasio.cpp"
 			],
 			"include_dirs": [
 				"<!@(node -p \"require('node-addon-api').include\")",
+				"node_modules/napi-thread-safe-callback-cancellable",
 				"include",
 				"src_gyp",					
 				"packages",

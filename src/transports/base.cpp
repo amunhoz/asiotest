@@ -89,11 +89,11 @@ void acroTransport::onError(std::function<void(string)> callback)
     callbackOnError = callback;
 }
 
-bool acroTransport::send(char * buff, int size, msgHeader * header)
+bool acroTransport::send(char * buff, int size)
 {    
     return send(buff, size, "");
 }
-bool acroTransport::send(char * buff, int size, string socket_id, msgHeader * header)
+bool acroTransport::send(char * buff, int size, string socket_id)
 {    
     std::cout << "wrong way" << std::endl;   
     return false;
