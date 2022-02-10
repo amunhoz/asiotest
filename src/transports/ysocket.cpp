@@ -5,9 +5,6 @@
 #include <utils/easybuffer.h>
 #include "kcp/ikcp.h"
 
-#include <node.h>
-#include <v8.h> 
-
 using namespace std;
 using namespace yasio;
 using namespace yasio::inet;
@@ -33,12 +30,12 @@ void YasioTransport::_init() {
     
 }
 void YasioTransport::_checkOptions() {           
-    std::string opt_type;
-    if (options.find("type") != options.end()) opt_type =  options["type"].get<string>();      
-    if (opt_type =="kcp"){
+    
+    if (options.find("type") != options.end()) _type =  options["type"].get<string>();      
+    if (_type =="kcp"){
         _serverType = YCK_KCP_SERVER;
         _clientType = YCK_KCP_CLIENT;
-    } else if (opt_type =="tcp"){
+    } else if (_type =="tcp"){
         _serverType = YCK_TCP_SERVER;
         _clientType = YCK_TCP_CLIENT;
     }
@@ -71,7 +68,7 @@ bool YasioTransport::listen(std::string URL)
                 break;
             case YEK_CONNECT_RESPONSE:
                 //new connection                
-                setup_kcp_transfer(ev->transport());
+                if (_type =="kcp") setup_kcp_transfer(ev->transport());
                 _newConnection(ev);                
                 break;
             case YEK_CONNECTION_LOST:
@@ -87,7 +84,9 @@ bool YasioTransport::listen(std::string URL)
         return true;
 	}
 	catch( exception& e ) {
-        fprintf(stderr, "(KCP) CANT LISTEN: %s\n",  e.what());  
+        fprintf(stderr, "(KCP) CANT LISTEN: %s\n",  e.what()); 
+        if (callbackOnError)
+            callbackOnError(e.what()); 
         return false;
     }  
     if(DEBUG_MODE) std::cerr << "KCP: listen success"<< std::endl;          
@@ -109,11 +108,12 @@ bool YasioTransport::connect(std::string URL)
     Idn = gen_random_number(); 
     try {
         io_hostent endpoints[] = {{host.c_str(), porti}};
-          _service =  new io_service(endpoints, 1);        
+        _service =  new io_service(endpoints, 1);        
         _service->set_option(YOPT_S_CONNECT_TIMEOUT, 5);
         _service->set_option(YOPT_C_MOD_FLAGS, 0, YCF_REUSEADDR, 0);
         _service->set_option(YOPT_C_LFBFD_PARAMS, 1, 65535, 0, 4, 0);
-        _service->set_option(YOPT_S_DEFERRED_EVENT, 0); // disable event queue           
+        _service->set_option(YOPT_S_DEFERRED_EVENT, 0); // disable event queue    
+        if (_type =="tcp") _service->set_option(YOPT_S_TCP_KEEPALIVE, 5, 10, 2);        
 
         _service->start([&, this](event_ptr ev) {
             switch (ev->kind())
@@ -127,7 +127,7 @@ bool YasioTransport::connect(std::string URL)
             case YEK_CONNECT_RESPONSE:           
                 //new connection                
                 _client = ev->transport();     
-                setup_kcp_transfer(_client);
+                if (_type =="kcp") setup_kcp_transfer(_client);
                 status.exchange(0);          
                 Status(ConnectionStatus::ONLINE);                     
                 break;
@@ -145,6 +145,8 @@ bool YasioTransport::connect(std::string URL)
         return true;
     } catch( exception& e ) {
         fprintf(stderr, "(KCP) CANT CONNECT: %s\n",  e.what());          
+        if (callbackOnError)
+            callbackOnError(e.what());
         return false;
     }    
     if(DEBUG_MODE) std::cerr << "KCP: connect success"<< std::endl;          
@@ -162,9 +164,7 @@ void YasioTransport::setup_kcp_transfer(transport_handle_t handle)
     if (options.find("nc") != options.end()) opt_nc =  options["nc"].get<int>();        
     ::ikcp_nodelay(kcp_handle, opt_nodelay, opt_interval, opt_resend, opt_nc);
 
-    int opt_mtu=1400;
-    if (options.find("mtu") != options.end()) opt_mtu =  options["mtu"].get<int>();   
-    ::ikcp_setmtu(kcp_handle, opt_mtu);
+    if (options.find("mtu") != options.end()) ::ikcp_setmtu(kcp_handle, options["mtu"].get<int>());    
 
     int opt_sndwnd=8192, opt_rcvwnd=8192;
     if (options.find("sndwnd") != options.end()) opt_sndwnd =  options["sndwnd"].get<int>();   
@@ -196,7 +196,9 @@ bool YasioTransport::send(char * buff, int size, std::string socket_id)
         } else {  
             _service->write(_client, std::move(data));                                                      
         }
-    } catch( exception& e ) {                        
+    } catch( exception& e ) {                
+        if (callbackOnError)
+            callbackOnError(e.what());
         fprintf(stderr, "(KCP) CANT SEND MESSAGE: %s\n",  e.what());  
         return false;
     }            
@@ -213,11 +215,7 @@ void YasioTransport::closePeer(std::string socket_id)
 
 void YasioTransport::close()
 {           
-   if (Type() == InstanceType::SERVER) {
-       _service->stop();
-   } else {
-       //_client->disconnect();
-   }
+   _service->stop();
    status.exchange(9);
 }
 
@@ -247,28 +245,35 @@ void YasioTransport::_newConnection(event_ptr& ev){
     item.id = ev->source_id();    
     //item.ip = conn->remote_point.address().to_string();
     //item.port = conn->remote_point.port();
-    //item.info["ip"] = item.ip ;                
-    //item.info["port"] =item.port;
+    //item.info["ip"] = item.ip ;                   
+    item.info["addr"] = ev->transport()->remote_endpoint().to_string().c_str();    
     item.lastActivity = getCurrentMs();   
-    item.socket = ev->transport();                  
+    item.socket = ev->transport();              
+    string infoConn = item.info.dump();    
+
     //insert itens
     _control.lock();
         connections->insert(make_pair(id, std::move(item)));
-    _control.unlock();      
+    _control.unlock();             
+    if (callbackConnection)                 
+        callbackConnection(id, ConnectionState::CONNECTED, infoConn);
 }
 
 
+void YasioTransport::drop(std::string sid){
+     _dropConnection(sid);   
+}            
 
-void YasioTransport::_dropConnection(std::string sid) { 
+void YasioTransport::_dropConnection(std::string sid) {     
     if (connections->count(sid)) {
         KCPConnection* item = &connections->at(sid);
-        if (callbackConnection!=NULL) {                
-            callbackConnection(sid, ConnectionState::DISCONNECTED, item->info);
-        }    
+        if (callbackConnection)                
+            callbackConnection(sid, ConnectionState::DISCONNECTED, item->info.dump());
+        
         _service->close(item->socket);
     };   
     _control.lock();
-        connections->erase(sid);    
+    connections->erase(sid);    
     _control.unlock();  
 }
 
@@ -276,5 +281,3 @@ void YasioTransport::_dropConnection(std::string sid) {
 std::string YasioTransport::_getId(event_ptr& ev) {   
     return to_string(ev->source_id());
 }
-
-

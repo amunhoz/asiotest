@@ -43,6 +43,7 @@ private:
         
     void Encryption(const Napi::CallbackInfo&);
     
+    void Drop(const Napi::CallbackInfo& info);
 
     void _loadEvents(string type);
 

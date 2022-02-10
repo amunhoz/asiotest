@@ -38,6 +38,11 @@ bool acroTransport::connect(string URL)
     return false;
 }
 
+void acroTransport::drop(string sid)
+{    
+}
+
+
 void acroTransport::_checkOptions() 
 {    
 
@@ -53,6 +58,8 @@ ConnectionStatus acroTransport::Status()
 void acroTransport::Status(ConnectionStatus newState){
     std::unique_lock<std::mutex> lktmp(_control);  //lktmp.unlock();    
     *_State= newState;
+    if (callbackOnStatus)
+        callbackOnStatus(newState);    
     lktmp.unlock();    
 }
 

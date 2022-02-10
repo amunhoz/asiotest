@@ -57,7 +57,6 @@ Napi::Value LibNodeTransport::Listen(const Napi::CallbackInfo& info) {
     }           
     _loadEvents("listen");    
    
-
     return Napi::Boolean::New(env, true);
 }
 
@@ -83,7 +82,6 @@ Napi::Value LibNodeTransport::Connect(const Napi::CallbackInfo& info) {
     }       
     _loadEvents("connect");
     return Napi::Boolean::New(env, true);
-
 }
 
 void LibNodeTransport::_loadEvents(string type) {
@@ -104,16 +102,14 @@ void LibNodeTransport::_loadEvents(string type) {
         });          
     });    
 
-    if (type == "listen") {
-        socket->onConnection([this](string socket, ConnectionState state, json info){
-            if (!status_Callback) return;
-            status_Callback->call([this, socket, state, info](Napi::Env env, std::vector<napi_value> &args) { 
+    socket->onConnection([this](string socket, ConnectionState state, string info){
+            if (!connection_Callback) return;            
+            connection_Callback->call([this, socket, state, info](Napi::Env env, std::vector<napi_value> &args) { 
                 string status = "offline";
                 if (state== ConnectionState::CONNECTED ) status = "online";                 
-                args = {Napi::String::New(env, socket), Napi::String::New(env, status), Napi::String::New(env, info.dump())};
-            });                      
-        });    
-    }       
+                args = {Napi::String::New(env, socket), Napi::String::New(env, status), Napi::String::New(env, info)};
+            });             
+    });
   
 }
 
@@ -131,9 +127,7 @@ void LibNodeTransport::OnData(const Napi::CallbackInfo& info) {
             args = {Napi::Buffer<char>::Copy(env, data.data(), data.size()), Napi::String::New(env, socket)};                    
         });                 
     };             
-    socket->onData(callBackCpp);    
-    
-    
+    socket->onData(callBackCpp);       
 }
 
 Napi::Value LibNodeTransport::Send(const Napi::CallbackInfo& info) {
@@ -216,6 +210,12 @@ void LibNodeTransport::Close(const Napi::CallbackInfo& info) {
     socket->close();
 }
 
+void LibNodeTransport::Drop(const Napi::CallbackInfo& info) {
+    string id = info[0].As<Napi::String>().Utf8Value();    
+    socket->drop(id);    
+}
+
+
 //init class
 Napi::Object LibNodeTransport::Init(Napi::Env env, Napi::Object exports) {
   Napi::HandleScope scope(env);
@@ -233,8 +233,10 @@ Napi::Object LibNodeTransport::Init(Napi::Env env, Napi::Object exports) {
                         InstanceMethod("onStatus", &LibNodeTransport::OnStatus),
                         InstanceMethod("onConnection", &LibNodeTransport::OnConnection),
                         InstanceMethod("status", &LibNodeTransport::Status),
+                        InstanceMethod("drop", &LibNodeTransport::Drop),
                         
                         InstanceMethod("encryption", &LibNodeTransport::Encryption),
+                        
                         InstanceMethod("close", &LibNodeTransport::Close),
                    });
 

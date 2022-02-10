@@ -54,6 +54,7 @@ class YasioTransport : public acroTransport
 
         int _serverType = YCK_KCP_SERVER;
         int _clientType = YCK_KCP_CLIENT;
+        std::string _type = "kcp";
                        
     private: 
         
@@ -65,6 +66,7 @@ class YasioTransport : public acroTransport
         YasioTransport(std::string jOptions);
         bool listen(std::string URL);        
         bool connect(std::string URL);                 
+        void drop(std::string sid);                       
         bool send(char * buff, int size, std::string socket_id);          
         void close(); 
         void closePeer(std::string socket_id);              

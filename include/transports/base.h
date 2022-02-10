@@ -23,7 +23,7 @@ enum ConnectionState
     };
 
 typedef std::function<void(string, char *, int)> CallbackSocket; //socket_id, char, size
-typedef std::function<void(string, ConnectionState, json)> CallbackConnection; //char, size, socket_id
+typedef std::function<void(string, ConnectionState, string)> CallbackConnection; //char, size, socket_id
 typedef std::function<void(string, vector<char>)> CallbackSocketVector; //socket_id, char, size
 class acroTransport 
 {        
@@ -59,7 +59,7 @@ class acroTransport
         virtual bool listen(string URL);        
         
         virtual bool connect(string URL); 
-        
+        void drop(std::string sid);       
         virtual void onData(CallbackSocketVector callback);
         virtual void onConnection(CallbackConnection callback);
         virtual void onStatus(std::function<void(ConnectionStatus)> callback);
